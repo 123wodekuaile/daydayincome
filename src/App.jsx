@@ -182,6 +182,11 @@ const SettingsWindow = ({ config: initialConfig }) => {
     localStorage.setItem('dayday-config', JSON.stringify(newConfig));
     ipcRenderer.send('settings-updated');
     message.success('配置已保存，实时生效！');
+    
+    // 延迟关闭窗口，让用户看清成功提示
+    setTimeout(() => {
+      ipcRenderer.send('close-settings');
+    }, 500);
   };
   
   // 退出应用逻辑

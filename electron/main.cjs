@@ -71,6 +71,13 @@ function createMainWindow() {
     app.quit();
   });
 
+  // 监听关闭设置窗口请求
+  ipcMain.on("close-settings", () => {
+    if (settingsWindow && !settingsWindow.isDestroyed()) {
+      settingsWindow.close();
+    }
+  });
+
   // 注册全局快捷键：Cmd+Shift+I
   globalShortcut.register("CommandOrControl+Shift+I", () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
