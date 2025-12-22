@@ -1,13 +1,15 @@
 /**
  * src/App.jsx
  */
-import { useState, useEffect, useRef } from 'react';
-import { ConfigProvider, theme, Form, InputNumber, TimePicker, Button, message, Card, Typography } from 'antd';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { ConfigProvider, theme, Form, InputNumber, TimePicker, Button, message, Card, Typography, Modal } from 'antd';
 import dayjs from 'dayjs';
 import locale from 'antd/locale/zh_CN';
+import { ExclamationCircleFilled } from '@ant-design/icons';
 
 const { ipcRenderer } = window.require('electron'); 
 const { Title, Text } = Typography;
+const { confirm } = Modal;
 
 // --- 样式定义 ---
 const styles = {
@@ -101,15 +103,14 @@ const useConfig = () => {
 const FloatingWindow = ({ config }) => {
   const [earned, setEarned] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  
   const configRef = useRef(config);
+
   useEffect(() => { configRef.current = config; }, [config]);
 
   useEffect(() => {
     const calculate = () => {
       const cfg = configRef.current;
       const now = new Date();
-      
       const [sH, sM] = cfg.startTime.split(':').map(Number);
       const [eH, eM] = cfg.endTime.split(':').map(Number);
       
@@ -117,13 +118,11 @@ const FloatingWindow = ({ config }) => {
       const end = new Date(); end.setHours(eH, eM, 0, 0);
 
       if (now < start) return setEarned(0);
-      
       const dailySalary = cfg.salary / cfg.workDays;
       if (now > end) return setEarned(dailySalary);
 
       const totalMs = end - start;
       const elapsedMs = now - start;
-      
       if (totalMs <= 0) return setEarned(0);
 
       const moneyPerMs = dailySalary / totalMs;
@@ -163,19 +162,16 @@ const FloatingWindow = ({ config }) => {
 const SettingsWindow = ({ config: initialConfig }) => {
   const [form] = Form.useForm();
 
-  // 初始化表单数据
   useEffect(() => {
     form.setFieldsValue({
       salary: initialConfig.salary,
       workDays: initialConfig.workDays,
-      // 将字符串 "09:30" 转为 dayjs 对象
       startTime: dayjs(initialConfig.startTime, 'HH:mm'),
       endTime: dayjs(initialConfig.endTime, 'HH:mm'),
     });
   }, [initialConfig, form]);
 
   const onFinish = (values) => {
-    // 转换回存储格式
     const newConfig = {
       salary: values.salary,
       workDays: values.workDays,
@@ -187,14 +183,30 @@ const SettingsWindow = ({ config: initialConfig }) => {
     ipcRenderer.send('settings-updated');
     message.success('配置已保存，实时生效！');
   };
+  
+  // 退出应用逻辑
+  const handleQuit = () => {
+    confirm({
+      title: '确认退出?',
+      icon: <ExclamationCircleFilled />,
+      content: '退出后将无法看到实时收入，确定要离开吗？',
+      okText: '残忍退出',
+      okType: 'danger',
+      cancelText: '继续使用',
+      onOk() {
+        ipcRenderer.send('app-quit');
+      },
+      onCancel() {},
+    });
+  };
 
   return (
     <ConfigProvider
       locale={locale}
       theme={{
-        algorithm: theme.darkAlgorithm, // 启用深色模式
+        algorithm: theme.darkAlgorithm, 
         token: {
-          colorPrimary: '#FFD700', // 主色调
+          colorPrimary: '#FFD700', 
           borderRadius: 8,
         },
         components: {
@@ -213,7 +225,7 @@ const SettingsWindow = ({ config: initialConfig }) => {
         boxSizing: 'border-box'
       }}>
         <Title level={3} style={{ color: '#FFD700', marginBottom: 24, textAlign: 'center', marginTop: 0 }}>
-          💰 天天赚钱
+          💰 实时收入
         </Title>
         
         <Card bordered={false}>
@@ -261,14 +273,31 @@ const SettingsWindow = ({ config: initialConfig }) => {
                 <TimePicker format="HH:mm" style={{ width: '100%' }} placeholder="18:30" />
               </Form.Item>
             </div>
-
-            <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-              <Button type="primary" htmlType="submit" block size="large" style={{ fontWeight: 'bold', height: '48px' }}>
-                保存配置
-              </Button>
-            </Form.Item>
           </Form>
         </Card>
+
+        {/* 底部操作按钮区 */}
+        <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Button 
+            type="primary" 
+            size="large" 
+            block 
+            onClick={() => form.submit()} 
+            style={{ height: 48, fontWeight: 'bold', fontSize: 16 }}
+          >
+            保存配置
+          </Button>
+          
+          <Button 
+            danger 
+            size="large" 
+            block 
+            onClick={handleQuit}
+            style={{ height: 48, fontWeight: 'bold', fontSize: 16 }}
+          >
+            退出应用
+          </Button>
+        </div>
 
         <div style={{ 
           marginTop: 'auto', 

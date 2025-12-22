@@ -1,5 +1,6 @@
 {
-  "name": "dayday-income",
+  "name": "realtime-income",
+  "productName": "实时收入",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -8,9 +9,35 @@
     "dev": "concurrently -k \"cross-env BROWSER=none npm run dev:react\" \"npm run dev:electron\"",
     "dev:react": "vite",
     "dev:electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron .",
-    "build": "vite build"
+    "build": "vite build",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder"
+  },
+  "build": {
+    "appId": "com.chenning.realtimeincome",
+    "productName": "实时收入",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.finance"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
     "antd": "^6.1.1",
     "dayjs": "^1.11.19",
     "react": "^18.2.0",
@@ -28,6 +55,7 @@
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^28.1.0",
+    "electron-builder": "^26.0.12",
     "vite": "^5.0.10",
     "wait-on": "^7.2.0"
   }

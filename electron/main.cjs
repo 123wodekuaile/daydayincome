@@ -48,7 +48,7 @@ function createMainWindow() {
 
   // 监听 React 发来的“打开设置”请求
   ipcMain.on("open-settings", () => {
-    openSettingsWindow(startUrl);
+    openSettingsWindow();
   });
 
   // 监听 React 发来的“数据更新”请求
@@ -66,6 +66,11 @@ function createMainWindow() {
     });
   });
 
+  // 监听退出请求
+  ipcMain.on("app-quit", () => {
+    app.quit();
+  });
+
   // 注册全局快捷键：Cmd+Shift+I
   globalShortcut.register("CommandOrControl+Shift+I", () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -79,30 +84,35 @@ function createMainWindow() {
 }
 
 // 创建配置窗口
-function openSettingsWindow(baseUrl) {
+function openSettingsWindow() {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
-    settingsWindow.show(); // 确保显示
-    settingsWindow.focus(); // 确保前端聚焦
+    settingsWindow.show();
+    settingsWindow.focus();
     return;
   }
 
   settingsWindow = new BrowserWindow({
-    width: 400,
-    height: 600,
-    title: "设置 - DayDay Income",
+    width: 420,
+    height: 750, // 增加高度以容纳所有表单项和按钮
+    minHeight: 600,
+    title: "设置 - 实时收入",
     autoHideMenuBar: true,
-    // parent: mainWindow, // 移除父子绑定，避免层级问题
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
     },
   });
 
-  // 加载同一个页面，通过 hash 路由到设置页
-  const settingsUrl = baseUrl.endsWith("/")
-    ? `${baseUrl}#/settings`
-    : `${baseUrl}/#/settings`;
-  settingsWindow.loadURL(settingsUrl);
+  const isDev = process.env.NODE_ENV === "development";
+
+  if (isDev) {
+    settingsWindow.loadURL("http://localhost:5173/#/settings");
+  } else {
+    // 使用 loadFile 配合 hash 参数，这是 Electron 官方推荐的加载本地文件带路由的方式
+    settingsWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
+      hash: "/settings",
+    });
+  }
 }
 
 app.whenReady().then(() => {
