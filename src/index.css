@@ -13,10 +13,11 @@ body {
   min-height: 100vh;
   /* 关键：确保 body 透明，否则 Electron 的 transparent: true 无效 */
   background: transparent; 
-  overflow: hidden; /* 防止出现滚动条 */
+  overflow: visible; /* 允许内容超出窗口，确保人民币扇形完整显示 */
 }
 
 #root {
   width: 100%;
   height: 100%;
+  overflow: visible; /* 确保根元素也允许内容超出 */
 }

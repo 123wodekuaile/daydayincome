@@ -6,6 +6,7 @@ import { ConfigProvider, theme, Form, InputNumber, TimePicker, Button, message, 
 import dayjs from 'dayjs';
 import locale from 'antd/locale/zh_CN';
 import { ExclamationCircleFilled } from '@ant-design/icons';
+import moneyImage from './assets/money.png'; // 导入人民币图片
 
 const { ipcRenderer } = window.require('electron'); 
 const { Title, Text } = Typography;
@@ -39,6 +40,7 @@ const styles = {
     cursor: 'default',
     boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
     minWidth: '180px',
+    WebkitAppRegion: 'no-drag', // 关键：取消拖拽，让鼠标事件生效
   },
   money: {
     fontSize: '2.2rem',
@@ -134,14 +136,136 @@ const FloatingWindow = ({ config }) => {
     return () => clearInterval(timer);
   }, []); 
 
+  // 计算人民币张数（按100元面值计算）
+  const moneyCount = useMemo(() => Math.max(1, Math.floor(earned / 100)), [earned]);
+
+  // 渲染人民币扇形
+  const renderMoneyFan = () => {
+    const moneyWidth = 160; 
+    const moneyHeight = 75;
+
+    // 少于4张：平铺展示，从上到下排列
+    if (moneyCount < 3) {
+      const spacing = 20; // 人民币之间的间距，减小间距
+      
+      return (
+        <div style={{ 
+          position: 'relative', 
+          width: '100%', 
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          top: '-100px',
+        }}>
+          {Array.from({ length: moneyCount }).map((_, index) => (
+            <img 
+              key={index}
+              src={moneyImage}
+              alt="money"
+              style={{
+                width: `${moneyWidth}px`,
+                height: `${moneyHeight}px`,
+                marginBottom: index < moneyCount - 1 ? `${spacing}px` : '0',
+                transition: 'all 0.3s ease',
+              }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    // 多张扇形展开：从上到下堆叠，编号从大到小，以左上角为圆心逆时针旋转
+    const totalAngle = 130; // 总旋转角度
+    const anglePerMoney = totalAngle / moneyCount; // 每张人民币对应的角度
+
+    return (
+      <div style={{ 
+        position: 'relative', 
+        width: '100%', 
+        height: '100%',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+      }}>
+        {Array.from({ length: moneyCount }).map((_, index) => {
+          // 编号从 moneyCount 到 1（从上到下，上层的编号大）
+          const number = moneyCount - index;
+          // 逆时针旋转角度：number * anglePerMoney，逆时针用负值
+          const angle =  (number * anglePerMoney) - 180;
+          
+          return (
+            <img 
+              key={index}
+              src={moneyImage}
+              alt="money"
+              style={{
+                position: 'absolute',
+                width: `${moneyWidth}px`,
+                height: `${moneyHeight}px`,
+                // 以左上角为旋转中心
+                transformOrigin: 'left top',
+                // 所有人民币的左上角重叠在中心点
+                top: '270px',
+                left: '50%',
+                transform: `rotate(${angle}deg)`,
+                transition: 'all 0.3s ease',
+                // zIndex: 编号越大越在上层
+                zIndex: number,
+              }}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div 
-      style={styles.floatingContainer}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        ...styles.floatingContainer,
+      }}
     >
-      <div style={styles.contentCard}>
-        <div style={styles.label}>今日入账</div>
+      {/* 人民币展示区域 - 在窗口顶部，向上展开 */}
+      <div style={{
+        width: '380px', // 配合窗口宽度400px，留20px边距
+        height: '400px', // 人民币向上展开的高度
+        position: 'absolute',
+        top: '0', // 顶部对齐
+        left: '50%',
+        transform: 'translateX(-50%)',
+        opacity: isHovered ? 1 : 0,
+        pointerEvents: 'none',
+        transition: 'opacity 0.3s ease',
+      }}>
+        {renderMoneyFan()}
+      </div>
+
+      {/* 收入卡片 - 在窗口底部，分区域控制拖拽 */}
+      <div 
+        style={{
+          ...styles.contentCard,
+          position: 'absolute',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          WebkitAppRegion: 'no-drag', // 整体禁止拖拽
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* 标题区域 - 可拖拽 */}
+        <div style={{
+          ...styles.label,
+          WebkitAppRegion: 'drag', // 标题区域可拖拽
+          cursor: 'move',
+          padding: '5px 0',
+        }}>
+          今日入账
+        </div>
+        
+        {/* 数字区域 - 不可拖拽（响应hover） */}
         <div style={styles.money}>¥{earned.toFixed(2)}</div>
         
         <button 
@@ -181,12 +305,20 @@ const SettingsWindow = ({ config: initialConfig }) => {
 
     localStorage.setItem('dayday-config', JSON.stringify(newConfig));
     ipcRenderer.send('settings-updated');
-    message.success('配置已保存，实时生效！');
     
-    // 延迟关闭窗口，让用户看清成功提示
-    setTimeout(() => {
-      ipcRenderer.send('close-settings');
-    }, 500);
+    // 使用 Modal.success 提供更优雅的反馈
+    Modal.success({
+      title: '保存成功',
+      content: '配置已更新，收入计算已实时生效！',
+      okText: '知道了',
+      centered: true,
+      onOk() {
+        // 用户点击确认后，再用淡出动画关闭窗口
+        setTimeout(() => {
+          ipcRenderer.send('close-settings');
+        }, 200);
+      },
+    });
   };
   
   // 退出应用逻辑

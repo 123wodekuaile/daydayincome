@@ -20,9 +20,9 @@ function createMainWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
   mainWindow = new BrowserWindow({
-    width: 260, // 初始宽度较小
-    height: 150, // 增加一点高度给设置按钮
-    x: width - 300, // 默认位置：右上角
+    width: 350, // 稍微加宽
+    height: 450, // 增加高度以容纳人民币展示区域
+    x: width - 350, // 调整默认位置
     y: 100,
     type: "toolbar", // 在 macOS 上有助于浮动层级
     frame: false, // 无边框
