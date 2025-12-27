@@ -6,7 +6,7 @@ import { ConfigProvider, theme, Form, InputNumber, TimePicker, Button, message, 
 import dayjs from 'dayjs';
 import locale from 'antd/locale/zh_CN';
 import { ExclamationCircleFilled } from '@ant-design/icons';
-import moneyImage from './assets/money04.png'; // 导入人民币图片
+import moneyImage from './assets/money.png'; // 导入人民币图片
 
 const { ipcRenderer } = window.require('electron'); 
 const { Title, Text } = Typography;
