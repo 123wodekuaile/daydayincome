@@ -250,13 +250,12 @@ const FloatingWindow = ({ config }) => {
           bottom: '20px',
           left: '50%',
           transform: 'translateX(-50%)',
-          WebkitAppRegion: 'no-drag', // 整体禁止拖拽
+          WebkitAppRegion: 'drag', // 默认可拖拽
         }}
       >
         {/* 标题区域 - 可拖拽 */}
         <div style={{
           ...styles.label,
-          WebkitAppRegion: 'drag', // 标题区域可拖拽
           cursor: 'move',
           padding: '5px 0',
         }}>
@@ -267,6 +266,7 @@ const FloatingWindow = ({ config }) => {
         <div 
           style={{
             ...styles.money,
+            WebkitAppRegion: 'no-drag', // 数字区域禁止拖拽，允许hover
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
