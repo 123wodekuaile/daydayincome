@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
@@ -48,14 +48,14 @@ jobs:
 
       - name: 上传构建产物 (macOS)
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: macos-installer
           path: release/*.dmg
 
       - name: 上传构建产物 (Windows)
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-installer
           path: release/*.exe
@@ -67,14 +67,16 @@ jobs:
 
     steps:
       - name: 下载所有构建产物
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
       - name: 创建 Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            macos-installer/*
-            windows-installer/*
+            artifacts/macos-installer/*
+            artifacts/windows-installer/*
           draft: false
           prerelease: false
         env:
