@@ -252,8 +252,6 @@ const FloatingWindow = ({ config }) => {
           transform: 'translateX(-50%)',
           WebkitAppRegion: 'no-drag', // 整体禁止拖拽
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
         {/* 标题区域 - 可拖拽 */}
         <div style={{
@@ -266,7 +264,15 @@ const FloatingWindow = ({ config }) => {
         </div>
         
         {/* 数字区域 - 不可拖拽（响应hover） */}
-        <div style={styles.money}>¥{earned.toFixed(2)}</div>
+        <div 
+          style={{
+            ...styles.money,
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          ¥{earned.toFixed(2)}
+        </div>
         
         <button 
           onClick={() => ipcRenderer.send('open-settings')}
