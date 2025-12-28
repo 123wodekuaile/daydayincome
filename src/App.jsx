@@ -177,7 +177,7 @@ const FloatingWindow = ({ config }) => {
     }
 
     // 多张扇形展开：从上到下堆叠，编号从大到小，以左上角为圆心逆时针旋转
-    const totalAngle = 130; // 总旋转角度
+    const totalAngle = 120; // 总旋转角度
     const anglePerMoney = totalAngle / moneyCount; // 每张人民币对应的角度
 
     return (
@@ -273,7 +273,7 @@ const FloatingWindow = ({ config }) => {
           style={{
             ...styles.settingsBtn,
             opacity: isHovered ? 1 : 0,
-            transform: isHovered ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-10px)',
+            transform: isHovered ? 'translateX(-50%) translateY(-8px)' : 'translateX(-50%) translateY(-10px)',
           }}
         >
           ⚙️ 设置
