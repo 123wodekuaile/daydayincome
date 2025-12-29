@@ -41,6 +41,7 @@ const styles = {
     boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
     minWidth: '180px',
     WebkitAppRegion: 'no-drag', // 关键：取消拖拽，让鼠标事件生效
+    height:'70px',
   },
   money: {
     fontSize: '2.2rem',
@@ -61,10 +62,10 @@ const styles = {
   },
   // 设置按钮
   settingsBtn: {
-    position: 'absolute',
-    bottom: '-28px', 
-    left: '50%',
-    transform: 'translateX(-50%)',
+    // position: 'absolute',
+    // bottom: '-28px', 
+    // left: '50%',
+    // transform: 'translateX(-50%)',
     background: '#333',
     color: '#eee',
     border: '1px solid #444',
@@ -262,28 +263,32 @@ const FloatingWindow = ({ config }) => {
           今日入账
         </div>
         
-        {/* 数字区域 - 不可拖拽（响应hover） */}
-        <div 
-          style={{
-            ...styles.money,
-            WebkitAppRegion: 'no-drag', // 数字区域禁止拖拽，允许hover
-          }}
+        {/* 数字+按钮区域 - 统一 hover 控制，不可拖拽 */}
+        <div
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-        >
-          ¥{earned.toFixed(2)}
-        </div>
-        
-        <button 
-          onClick={() => ipcRenderer.send('open-settings')}
           style={{
-            ...styles.settingsBtn,
-            opacity: isHovered ? 1 : 0,
-            transform: isHovered ? 'translateX(-50%) translateY(-8px)' : 'translateX(-50%) translateY(-10px)',
+            position: 'relative',
+            WebkitAppRegion: 'no-drag', // 整个区域不可拖拽
           }}
         >
-          ⚙️ 设置
-        </button>
+          {/* 数字区域 */}
+          <div style={styles.money}>
+            ¥{earned.toFixed(2)}
+          </div>
+          
+          {/* 设置按钮 */}
+          <button 
+            onClick={() => ipcRenderer.send('open-settings')}
+            style={{
+              ...styles.settingsBtn,
+              opacity: isHovered ? 1 : 0,
+              transform: isHovered ? 'translateY(7px)' : '',
+            }}
+          >
+            ⚙️ 设置
+          </button>
+        </div>
       </div>
     </div>
   );
